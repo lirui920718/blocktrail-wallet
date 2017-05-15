@@ -27,6 +27,19 @@ angular.module('blocktrail.wallet')
             ANALYTICS_META[eventVal] = { category: "BuyBTC" };
         });
 
+        var getBrowserFingerprint = function() {
+            // Return a promise for a fingerprint and its components
+            return new Promise(function (resolve, reject) {
+                new Fingerprint2().get(function (result, components) {
+                    if(!result) reject();
+                    resolve({
+                        "hash": result,
+                        "components": components
+                    });
+                });
+            });
+        };
+
         var trackEvent = function(event) {
             tuneTrackingService.measureEvent(event);
             $analytics.eventTrack(event, ANALYTICS_META[event] || { category: 'Events' });
@@ -34,7 +47,8 @@ angular.module('blocktrail.wallet')
 
         return {
             EVENTS: EVENTS,
-            trackEvent: trackEvent
+            trackEvent: trackEvent,
+            getBrowserFingerprint: getBrowserFingerprint
         }
     })
 ;

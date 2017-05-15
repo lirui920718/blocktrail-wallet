@@ -129,17 +129,22 @@ angular.module('blocktrail.wallet')
             var twoFactorCode = $scope.twoFactorCode;
 
             $scope.twoFactorCode = null; // consumed
-            $http.post(CONFIG.API_URL + "/v1/" + (CONFIG.TESTNET ? "tBTC" : "BTC") + "/mywallet/enable", {
-                login: $scope.form.username,
-                password: CryptoJS.SHA512($scope.form.password).toString(),
-                platform: $rootScope.isIOS && "iOS" || "Android",
-                version: $rootScope.appVersion,
-                two_factor_token: twoFactorCode,
-                device_uuid: device.uuid,
-                device_name: ([device.platform, device.model].clean().join(" / ")) || 'Unknown Device',
-                skip_two_factor: true // will make the resulting API key not require 2FA in the future
-            })
-                .then(function(result) {
+
+            trackingService.getBrowserFingerprint().then(function (result) {
+
+                return $http.post(CONFIG.API_URL + "/v1/" + (CONFIG.TESTNET ? "tBTC" : "BTC") + "/mywallet/enable", {
+                    login: $scope.form.username,
+                    password: CryptoJS.SHA512($scope.form.password).toString(),
+                    platform: $rootScope.isIOS && "iOS" || "Android",
+                    version: $rootScope.appVersion,
+                    two_factor_token: twoFactorCode,
+                    device_uuid: device.uuid,
+                    device_name: ([device.platform, device.model].clean().join(" / ")) || 'Unknown Device',
+                    skip_two_factor: true, // will make the resulting API key not require 2FA in the future
+                    browserid: result.hash ? result.hash : "Unknown"
+                });
+            }).then(function(result) {
+
                     trackingService.trackEvent(trackingService.EVENTS.LOGIN);
 
                     var newSecret = false;
@@ -184,8 +189,8 @@ angular.module('blocktrail.wallet')
                         })
                         .then(function(secretData) {
                             return launchService.storeAccountInfo(_.merge({}, {
-                                secret: secretData.secret, 
-                                encrypted_secret: secretData.encrypted_secret, 
+                                secret: secretData.secret,
+                                encrypted_secret: secretData.encrypted_secret,
                                 new_secret: newSecret
                             }, result.data)).then(function() {
                                 $log.debug('existing_wallet', result.data.existing_wallet);
