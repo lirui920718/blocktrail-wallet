@@ -141,7 +141,7 @@ angular.module('blocktrail.wallet')
                     device_uuid: device.uuid,
                     device_name: ([device.platform, device.model].clean().join(" / ")) || 'Unknown Device',
                     skip_two_factor: true, // will make the resulting API key not require 2FA in the future
-                    browserid: result.hash ? result.hash : "Unknown"
+                    browser_fingerprint: result.hash ? result.hash : "Unknown"
                 });
             }).then(function(result) {
 
